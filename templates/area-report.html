@@ -1,0 +1,59 @@
+{% extends 'base.html' %}
+
+{% block main %}
+<section class=" my-1 container-fluid p-0 p-md-2">
+  <div class="table-responsive">
+    <table class="table table-sm table-bordered table-striped table-hover">
+      <thead>
+        <tr>
+          <th class="text-center text-primary table-header" colspan="9">
+            <h4>খোরশেদ ক্যাবল টিভি।</h4>
+            <small class='text-success'>ঠিকানা : তালপট্টি, সদর দক্ষিন, কুমিল্লা।</small>
+            <small class="text-success">&nbsp;&nbsp;&nbsp;&nbsp;মোবাইল : ০১৮২২৮৬৯৫৯১</small>
+          </th>
+        </tr>
+        <tr>
+          <th class="text-success text-center " colspan="2">বিল : {{ month_name}} </th>
+          <th class="text-success text-center" colspan="2"><strong>এলাকা : {{ area_name }}</strong></th>
+          <th class="text-success text-center" colspan="5">প্রিন্টের তারিখ : {% now "d b Y H:i" %}</th>
+        </tr>
+        <tr>
+          <th>আইডি</th>
+          <th>নাম</th>
+          <th>পিতার নাম</th>
+          <th>ঠিকানা</th>
+          <th>অবস্থা</th>
+          <th>মোবাইল</th>
+          <th>পেশা</th>
+          <th>বকেয়া</th>
+          <th>এই মাসে পরিশোধ</th>
+        </tr>
+      </thead>
+      <tbody>
+
+      {% for customer in customer_list %}
+        <tr>
+          <td>{{ customer.id }}</td>
+          <td>{{ customer.name }}</td>
+          <td>{{ customer.fatherName }}</td>
+          <td>{{ customer.address }}</td>
+          <td>{{ customer.isActive|yesno:"সংযোকৃত,বিচ্ছিন্ন,maybe" }}</td>
+          <td>{{ customer.mobileNumber }}</td>
+          <td>{{ customer.occupation }}</td>
+          <td>{{ customer.get_total_dues }}</td>
+          <td>{{ customer.this_month_paid_amount }}</td>
+        </tr>
+
+        {% endfor %}
+      </tbody>
+      <tfoot>
+        <td colspan='9' class='text-center'>
+          <span class="text-primary">Development & Design : Mohammad Hasan </span>
+        </td>
+      </tfoot>
+    </table>
+
+  </div>
+</section>
+
+{% endblock %}

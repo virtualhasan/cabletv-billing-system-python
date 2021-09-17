@@ -1,0 +1,135 @@
+{% extends 'base.html' %}
+
+{% block header %}
+{% include 'header.html' %}
+{% endblock %}
+
+{% block main %}
+
+
+
+<div class="container m-4 mx-auto p-3">
+  <section class='bg-light shadow border rounded p-3'>
+    <h6>Bill Collection</h6>
+    <hr>
+    <div class="row">
+
+      <div class="col-lg-3 mb-3">
+        <form action="" class="form-inline mb-3">
+          <div class="input-group">
+            <input type="number" id='billid' class="form-control" placeholder="আইডি প্রদান করুন" required>
+            <div class="input-group-append">
+              <button id="billbtn" class="input-group-text"><i class="fa fa-search"></i></button>
+
+              <!-- <button class="btn btn-primary" type="button" disabled>
+                 <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                  Loading...
+                </button> -->
+
+            </div>
+          </div>
+        </form>
+
+        <form action="" class="form-inline">
+          <div class="input-group">
+            <input type="text" id='name' class="form-control" placeholder="নাম/মোবাইল">
+            <div class="input-group-append">
+              <button id="namebtn" class="input-group-text"><i class="fa fa-search"></i></button>
+            </div>
+          </div>
+        </form>
+      </div>
+
+      <div class="col-lg-5 mb-3 " id='userdetails'>
+        <!-- <h5 class="text-success">আইডি : <span class="text-danger" id='customerId'></span></h5><hr>
+        
+            <table>
+              <tr>
+                  <td><h3 class="text-info">নাম</h3></td>
+                  <td class="px-3">:</td><td><h3 class="text-danger" id='customerName'></h3></td>
+              </tr>
+              <tr>
+                  <td class="text-info">পিতা</td>
+                  <td class="px-3">:</td><td class="text-success" id='fatherName'></td>
+              </tr>
+              <tr>
+                  <td class="text-info">ঠিকানা</td>
+                  <td class="px-3">:</td><td class="text-success" id='address'></td>
+              </tr>
+              <tr>
+                  <td class="text-info">এলাকা</td>
+                  <td class="px-3">:</td><td class="text-success" id='area'></td>
+              </tr>
+              <tr>
+                  <td class="text-info">পেশা</td>
+                  <td class="px-3">:</td><td class="text-success" id='occupation'></td>
+              </tr>
+              <tr>
+                  <td class="text-info">অবস্থা</td>
+                  <td class="px-3">:</td><td class="text-success" id='isActive'></td>
+              </tr>
+              <tr>
+                  <td class="text-info">মোবাইল নং</td>
+                  <td class="px-3">:</td><td class="text-success" id='mobileNumber'></td>
+              </tr>
+              <tr>
+                  <td class="text-danger"><h4>বকেয়া</h4></td>
+                  <td class="px-3">:</td><td class="text-success">
+                      <h4 class="text-danger"> <span id="totalDues"></span>  টাকা<small class="text-light bg-danger rounded ml-2 px-2"> <span id="totalMonth"></span> মাস</small></h4>
+                  </td>
+              </tr>
+          </table> -->
+
+      </div>
+
+      <div id='payment' style="display:none" class="col-lg">
+        <h3>পেমেন্ট</h3>
+        <hr>
+        <form action="">
+          <div id="billCheckbox"></div>
+
+          <div class='input-group mt-2'>
+            <div class='input-group-append '>
+              <span class='input-group-text'>Amount</span>
+            </div>
+            <div id="amountDiv"><input class="form-control " type="text" name="" id="amount"
+                placeholder="বিল অ্যামাউন্ট" tabindex="2" disabled></div>
+          </div>
+
+          <div class='input-group mt-2'>
+            <div class='input-group-append '>
+              <span class='input-group-text'>Discount</span>
+            </div>
+            <div id="discountDiv"><input class="form-control" type="text" name="" id="discount" placeholder="ডিসকাউন্ট"
+                tabindex="3" disabled></div>
+          </div>
+
+
+          <div class='input-group mt-2'>
+            <div class='input-group-append '>
+              <span class='input-group-text'>Receipt</span>
+            </div>
+            <div>
+            <input class="form-control" type="text" name="" id="receipt" placeholder="রসিদ নাম্বার" tabindex="4">
+            </div>
+            </div>
+
+
+
+          <div class="custom-control custom-checkbox mt-2 ml-2">
+            <input type="checkbox" class="custom-control-input" value="1" id="sms" tabindex="6" checked>
+            <label class="custom-control-label text-danger" for="sms">এসএমএস অ্যালার্ট</label>
+          </div>
+
+          <button class="btn btn-success px-5 mt-2" id="paybtn" tabindex="5">পরিশোধ</button><span
+            class="ml-4 text-danger" id="payment-info"></span>
+        </form>
+      </div>
+    </div>
+  </section>
+</div>
+{% endblock %}
+
+{% block footer %}
+{% include 'footer.html' %}
+{% endblock %}

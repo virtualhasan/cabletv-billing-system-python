@@ -1,0 +1,50 @@
+{% load static %}
+
+<header class="container-fuid p-0">
+  <nav class="navbar navbar-expand-md navbar-dark bg-primary">
+    <a class="navbar-brand p-0" href="{% url 'index' %}">
+      <h3 class="text-light"> খোরশেদ ক্যাবল টিভি</h3>
+    </a>
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav"
+      aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
+      <ul class="navbar-nav">
+        <div class="dropdown-divider"></div>
+        <li class="nav-item ">
+          <a class="nav-link text-light" href="{% url 'index' %}">হোম <span class="sr-only">(current)</span></a>
+        </li>
+
+        {% if user.is_collector is False %}
+        <li class="nav-item ">
+          <a class="nav-link text-light" href="{% url 'customers_list' %}">গ্রাহক</a>
+        </li>
+        {% endif %}
+
+        <li class="nav-item ">
+          <a class="nav-link text-light" href="/bills">বিল</a>
+        </li>
+
+        {% if user.is_collector is False %}
+        <li class="nav-item ">
+          <a class="nav-link text-light" href="/reports">প্রতিবেদন</a>
+        </li>
+        {% endif %}
+
+        <li class="nav-item dropdown">
+          <div class="avator nav-link dropdown-toggle text-light mx-md-5 m-0" href="#" data-toggle="dropdown">
+            <img src={% static "/img/avator.jpg" %} alt="Avator" />
+          </div> 
+          <div class="dropdown-menu">
+          {% if user.is_collector is False %}
+            <a class="dropdown-item border-bottom" href="/settings">সেটিংস</a>
+          {% endif %}
+            <a class="dropdown-item border-bottom" href="#">প্রোফাইল</a>
+            <a class="dropdown-item" href="{% url 'accounts:logout' %}">Logout</a>
+          </div>
+        </li>
+      </ul>
+    </div>
+  </nav>
+</header> 

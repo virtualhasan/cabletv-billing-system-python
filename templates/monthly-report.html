@@ -1,0 +1,48 @@
+{% extends 'base.html' %}
+
+{% block main %}
+<section class="my-2 container-fluid p-0 p-md-2">
+        <div class="table-responsive">
+          <table class="table table-sm table-bordered table-striped table-hover">
+            <thead>
+                
+                <tr>
+                  <th colspan="7" class="text-center bg-danger text-light"><h4>{{ month_name }} গ্রহনকৃত বিলের বিবরণ</h4></th>
+                </tr>
+                <tr>
+                    <th>#</th>
+                    <th>আইডি</th>
+                    <th>নাম</th>
+                    <th>ঠিকানা</th>
+                    <th>বিল</th>
+                    <th class='text-nowrap'>রসিদ নং</th> 
+                    <th>সময়</th>
+                </tr>
+            </thead>
+            <tbody>
+
+            {% for payment in payment_list %}
+
+              <tr>
+                <td>{{ forloop.counter }}</td>
+                <td>{{ payment.customer.id }}</td>
+                <td>{{ payment.customer.name }}</td>
+                <td>{{ payment.customer.address }}</td>
+                <td>{{ payment.paidAmount }}</td>   
+                <td>{{ payment.txnId }}</td>                  
+                <td>{{ payment.createAt }}</td>
+                
+              </tr>
+
+      {% endfor %}
+              <tr>    
+                <td colspan="5" class="text-right"><h4 class="text-success">মোট <i class='text-danger'>{{ total }} </i>টাকা</h4></td>
+                <td colspan="2">&nbsp;</td>
+              </tr>
+            </tbody>
+          </table>
+
+        </div>
+</section>
+
+{% endblock %} 

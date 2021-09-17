@@ -1,0 +1,107 @@
+{% extends 'base.html' %}
+
+{% block header %}
+    {% include 'header.html' %}
+{% endblock %}
+
+{% block main %}
+<div class="border mt-4 mb-4 bg-light container pt-2 shadow">
+    <a class="btn btn-sm btn-outline-primary mb-2" href="{% url 'reports_list' %}">আরো দেখুন</a>
+    
+      <div class="row">
+        <div class="col-sm">
+          <table>
+            <tr>
+              <td><h3 class="text-danger">আইডি</h3></td>
+              <td class="px-3">:</td>
+              <td><h3 class="text-danger">{{ customer.id }}</h3></td>
+            </tr>
+            <tr>
+              <td>নাম</td>
+              <td class="px-3">:</td>
+              <td>{{ customer.name }}</td>
+            </tr>
+            <tr>
+              <td>পিতার নাম</td>
+              <td class="px-3">:</td>
+              <td>{{ customer.fatherName }}</td>
+            </tr>
+            <tr>
+              <td>ঠিকানা</td>
+              <td class="px-3">:</td>
+              <td>{{ customer.address }}</td>
+            </tr>
+            <tr>
+              <td>এলাকা</td>
+              <td class="px-3">:</td>
+              <td>{{ customer.area.name }}</td>
+            </tr>
+          </table>
+        </div>
+        <div class="col-sm">
+          <table>
+            <tr>
+              <td>মোবাইল</td>
+              <td class="px-3">:</td>
+              <td>{{ customer.mobileNumber }}</td>
+            </tr>
+            <tr>
+              <td>সংযোগের তারিখ</td>
+              <td class="px-3">:</td>
+              <td>{{ customer.connectionAt }}</td>
+            </tr>
+            <tr>
+              <td>মাসিক বিল</td>
+              <td class="px-3">:</td>
+              <td>{{ customer.monthlyCharge }} টাকা</td>
+            </tr>
+            <tr>
+              <td><h3 class="text-primary">মোট বকেয়া</td>
+              <td class="px-3">:</td>
+              <td><h3 class="text-danger">{{ customer.get_total_dues }} টাকা</h3></td>
+            </tr>
+          </table>
+        </div>
+      </div>
+  
+
+      <div class="mt-4 table-responsive">
+        <table id='singel-report-table' class="table table-sm table-bordered  table-hover">
+          <thead>
+            <th>#</th>
+            <th>মাস</th>
+            <th>বিল</th>
+            <th>ডিসকাউন্ট</th>
+            <th>পরিশোধ</th>
+            <th>বকেয়া</th>
+            <th>আদায়ের তারিখ</th>
+            <th>রসিদ নং</th>
+            <th>আদায়কারী</th>
+          </thead>
+          <tbody>
+
+          {% for payment in customer.payments.all %}
+              <tr>
+                <td>{{ forloop.counter }}</td>
+                <td>{{ payment.get_bill_month_name }}</td>
+                <td>{{ payment.totalAmount }} টাকা</td>
+                <td>{{ payment.discount }}</td>
+                <td>{{ payment.paidAmount }}</td>
+                <td>{{ payment.dues }}</td>
+                <td>{{ payment.createAt }}</td>
+                <td class='receiptvalue'>{{ payment.txnId }}</td>
+                <td>{{ payment.paidBy.first_name }}</td>
+              </tr>
+
+          {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+{% endblock %}
+
+{% block footer %}
+    {% include 'footer.html' %}
+{% endblock %}

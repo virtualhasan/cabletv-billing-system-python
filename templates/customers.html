@@ -1,0 +1,185 @@
+{% extends 'base.html' %}
+
+{% block header %}
+{% include 'header.html' %}
+{% endblock %}
+
+{% block main %}
+<!-- Button trigger modal -->
+<!-- <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#customerModal">
+  Launch demo modal
+</button> -->
+
+<!-- Modal -->
+<div class="modal fade" id="customerModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+  aria-hidden="true">
+  <div class="modal-dialog modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="exampleModalLabel">Customer Manangement</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div id="alertDiv"></div>
+        <form id="add-customers" action="" method="post">
+          <div class="row">
+            <div class="col-sm-3 form-group">
+              <label for="area">এরিয়া</label>
+
+              <select class="form-control" id="area" name="area" required>
+                <option value="">এলাকা নির্বাচন করুন</option>
+                {% for area in area_list %}
+                <option value="{{ area.id }}"> {{ area.name }} </option>
+                {% endfor %}
+              </select>
+
+            </div>
+            <div class="col-sm-3 form-group">
+              <label for="id">আইডি</label>
+              <input type="number" class="form-control" name="id" id="id" required>
+            </div>
+            <div class="col-sm form-group">
+              <label for="name">নাম</label>
+              <input type="text" id="name" class="form-control" name="name" required>
+
+            </div>
+
+          </div>
+          <div class="row">
+            <div class="col-sm-4 form-group">
+              <label for="fatherName">পিতার নাম</label>
+              <input type="text" class="form-control" id="fatherName" name="fatherName">
+
+            </div>
+            <div class="col-sm form-group">
+              <label for="address">ঠিকানা</label>
+              <input type="text" id="address" class="form-control" name="address" required>
+
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-sm form-group">
+              <label for="connectionAt">সংযোগের তারিখ</label>
+              <input type="text" id="connectionAt" class="form-control" name="connectionAt" placeholder="dd/mm/yyyy"
+                readonly>
+            </div>
+            <div class="col-sm form-group">
+              <label for="mobileNumber">মোবাইল নাম্বার</label>
+              <input type="text" class="form-control" id="mobileNumber" placeholder="018" name="mobileNumber">
+
+            </div>
+            <div class="col-sm form-group">
+              <label for="nidNumber">জাতীয় পরিচয়পত্র নাম্বার</label>
+              <input type="number" class="form-control" id="nidNumber" name="nidNumber">
+
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-sm form-group">
+              <label for="occupation">পেশা</label>
+              <input type="text" class="form-control" id="occupation" name="occupation">
+
+            </div>
+            <div class="col-sm form-group">
+              <label for="connectionFee">সংযোগ ফি</label>
+              <input type="number" id="connectionFee" class="form-control" name="connectionFee">
+
+            </div>
+            <div class="col-sm form-group">
+              <label for="tv">TV</label>
+              <select id="tv" class="form-control" name="tv">
+                <option value="1">1</option>
+                <option value="2">2</option>
+                <option value="3">3</option>
+                <option value="4">4</option>
+                <option value="5">5</option>
+              </select>
+
+            </div>
+            <div class="col-sm form-group">
+              <label for="monthlyCharge">মাসিক বিল</label>
+              <input type="number" value="200" class="form-control" id="monthlyCharge" name="mmonthlyCharge" required>
+
+            </div>
+            <div class="col-sm form-group">
+              <label for="permanentDiscount">ডিসকাউন্ট</label>
+              <input value="0" type="number" class="form-control" id="permanentDiscount" name="permanentDiscount">
+            </div>
+          </div>
+          <!-- <button class="btn btn-primary" type="submit" name="add">যুক্ত করুন</button> -->
+          <!-- <button class="btn btn-info" type="submit" name="update">Update</button> -->
+          <!-- <button id="delete" class="btn btn-danger" type="submit">Delete</button> -->
+
+          <div class="modal-footer">
+            <button class="btn btn-secondary" data-dismiss="modal">Close</button>
+            <button class="btn btn-primary" id='customer-add-submit' type="submit" name="add">যুক্ত করুন</button>
+            <!-- <button class="btn btn-primary"  >পরিবর্তন করুন</button> -->
+          </div>
+        </form>
+
+      </div>
+
+
+
+    </div>
+  </div>
+</div>
+
+
+<section class="mt-5 container-fluid">
+  <a href="{% url 'add_customers' %}" class="btn btn-info text-center mb-3 d-block justify-content-center">নতুন গ্রাহক
+    যুক্ত করুন</a>
+  <!-- <div class="table-responsive"> -->
+  <table width="100%" id='customer_table_id' class="table table-sm table-bordered table-striped table-hover">
+    <thead>
+      <th>আইডি</th>
+      <th>নাম</th>
+      <th>ঠিকানা</th>
+      <th>এলাকা</th>
+      <th>মোবাইল</th>
+      <th>মাসিক বিল</th>
+      <th class='text-center'>Actions</th>
+    </thead>
+    <tbody>
+
+      {% for customer in customers_list %}
+      <tr>
+        <td>{{ customer.id }}</td>
+        <td>{{ customer.name }}</td>
+        <td>{{ customer.address }}</td>
+        <td>{{ customer.area.name }}</td>
+        <td>{{ customer.mobileNumber }}</td>
+        <td>{{ customer.monthlyCharge }}</td>
+        <td class='d-flex flex-nowrap'>
+          {% if user.is_collector %}
+          <a href='/single_report/?id={{ customer.id }}' class='btn btn-sm  btn-info mx-1'> <i class="fa fa-info"></i>
+          </a>
+          {% else %}
+          {% if customer.isActive %}
+          <button data-id='{{ customer.id }}' data-isactive="inactive"
+            class='inactive-btn btn btn-sm btn-success mx-2'><i class="fa fa-times"></i></button>
+          {% else %}
+          <button data-id='{{ customer.id }}' data-isactive="active" class='inactive-btn btn btn-sm btn-warning mx-2'><i
+              class="fa fa-check"></i></button>
+          {% endif %}
+
+          <button data-id={{ customer.id }} class='update-btn btn btn-sm btn-primary mx-1'><i
+              class="fa fa-edit"></i></button>
+          <a href='/single_report/?id={{ customer.id }}' class='btn btn-sm  btn-info mx-1'> <i class="fa fa-info"></i>
+          </a>
+          <button data-id={{ customer.id }} class='delete-btn btn btn-sm btn-danger'><i
+              class="fa fa-trash"></i></button>
+          {% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</section>
+
+{% endblock %}
+{% block footer %}
+{% include 'footer.html' %}
+{% endblock %}

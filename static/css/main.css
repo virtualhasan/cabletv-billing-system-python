@@ -1,0 +1,32 @@
+/* Avator Section */
+.avator img {
+  height: 35px;
+  width: 35px;
+  object-fit: cover;
+  border-radius: 50%;
+}
+
+.avator:hover img {
+  border: 3px solid #ddd;
+  
+}
+/* End Avator */
+
+
+
+@page {
+  size: auto;
+}
+
+@media screen and (max-width:600px) {
+  .nav-item:not(:last-child) {
+  border-bottom:1px solid #ddd;
+}  
+}
+
+@media print {
+  .table-header {
+    border:none;
+  }
+}
+

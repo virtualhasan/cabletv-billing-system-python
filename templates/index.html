@@ -1,0 +1,224 @@
+{% extends 'base.html' %}
+
+{% block header %}
+{% include 'header.html' %}
+{% endblock %}
+{% block main %}
+
+<div class="container m-4 mx-auto">
+    <section class="bg-light border shadow rounded p-3">
+        <h3 class="mt-3 pb-3 text-center border-bottom">স্বাগতম! ক্যাবল টিভি সার্ভিস.</h3>
+
+        {% comment %} <div class='container bg-danger text-center rounded'>
+            <h2><a class='btn text-light display-4' href='http://isp.xn--85b5acub.xn--54b7fta0cc/'>Internet Bill</a>
+            </h2>
+        </div> {% endcomment %}
+
+
+        <ul class="nav nav-tabs">
+            <li class="nav-item">
+                <a class="nav-link active" data-toggle="tab" href="#bill">বিল</a>
+            </li>
+            {% if user.is_collector is False %}
+            <li class="nav-item">
+                <a class="nav-link" data-toggle="tab" href="#client">গ্রাহক পরিসংখ্যান</a>
+            </li>
+            {% endif %}
+            <li id="smscheck" class="nav-item">
+                <a class="nav-link" data-toggle="tab" href="#sms-info">SMS</a>
+            </li>
+        </ul>
+
+        <!-- Tab panes -->
+        <div class="tab-content">
+            <!-- Last 10 Bill History -->
+            <div id="bill" class="tab-pane active"><br>
+                <div class="table-responsive">
+                    <table class="table table-sm table-bordered table-striped table-hover">
+                        <thead>
+                            <tr class='bg-primary text-light'>
+                                <th colspan='7' class='text-center'>সর্বশেষ ১০ টি বিলের বিবরন</th>
+                            </tr>
+                            <tr>
+                                <th class='text-center'>আইডি</th>
+                                <th class='text-center'>নাম</th>
+                                <th class='text-center'>এলাকা</th>
+                                <th class='text-center'>বিল</th>
+                                <th class='text-center'>সময়</th>
+                                <th class='text-center'>রসিদ নং</th>
+                                <th class='text-center'>আদায়কারী</th>
+                            </tr>
+                        </thead>
+
+                        {% for payment in payment_list %}
+                        <tr>
+                            <td class='px-3'>{{ payment.customer.id }}</td>
+                            <td class='px-3'>{{ payment.customer.name }}</td>
+                            <td class='px-3'>{{ payment.customer.area.name }}</td>
+                            <td class='px-3'>{{ payment.paidAmount }}</td>
+                            <td class='px-3'>{{ payment.createAt }}</td>
+                            <td class='px-3'>{{ payment.txnId }}</td>
+                            <td class='px-3'>{{ payment.paidBy.get_full_name }}</td>
+                        </tr>
+                        {% endfor %}
+                    </table>
+                </div>
+                <!-- END last 10 bill history -->
+
+                <div class="row">
+                    <!-- user wise bill collect info-->
+                    <div class="col-sm-8">
+                        <table class="table table-sm table-bordered">
+                            <tr class='bg-primary text-light'>
+                                <th colspan='3' class='text-center'>আজকের বিল আদায়ের বিবরন</th>
+                            </tr>
+
+                            <tr>
+                                <th class='text-center'>আদায়কারী</th>
+                                <th class='text-center'>আদায়কৃত টাকা</th>
+                                <th class='text-center'>ছাড়কৃত টাকা</th>
+                            </tr>
+
+                            {% for collector in collector_list %}
+                            <tr>
+                                <td class='px-3'>{{ collector.paidBy__first_name }} {{ collector.paidBy__last_name }}
+                                </td>
+                                <td class='px-3'>{{ collector.paidAmount }} ৳</td>
+                                <td class='px-3'>{{ collector.discount }} ৳</td>
+                            </tr>
+                            {% endfor %}
+                        </table>
+                    </div>
+       
+                    <!-- End user wise bill collect info-->
+
+                    <!-- user bill information -->
+       
+
+                    <!-- Area Wise section -->
+                    <div class="col-sm-4">
+                        <table class="table table-sm table-bordered">
+                            <tr class='bg-primary text-light'>
+                                <th colspan='2' class='text-center'>আজকের এলাকা ভিত্তিক বিল বিবরন</th>
+                            </tr>
+                            <tr>
+                                <th class='text-center'>এলাকা</th>
+                                <th class='text-center'>আদায়কৃত টাকা</th>
+                            </tr>
+                            {% for area_wise in area_wise_collect %}
+                            <tr>
+                                <td class='px-3'>{{ area_wise.customer__area__name }}</td>
+                                <td class='px-3'>{{ area_wise.paidAmount }}</td>
+                            </tr>
+                            {% endfor %}
+                            <tr>
+                                <td class='px-3'>সর্বমোট</td>
+                                <td class='px-3'>{{ area_wise_collect_total }} ৳</td>
+                            </tr>
+                        </table>
+                    </div>
+                    <!-- END Area Wise section -->
+                </div>
+            </div>
+
+
+            <!-- Customer History -->
+            {% if user.is_superuser or user.is_admin %}
+            <div id="client" class="tab-pane fade"><br>
+                <div class="table-responsive">
+                    <h3 class="text-success">গ্রাহক বিবরন</h3>
+                    <table class="table table-sm table-bordered">
+                        <thead class=''>
+                            <tr>
+                                <th rowspan='2' class='text-center align-middle'>এলাকা</th>
+                                <th colspan='3' class='text-center'>গ্রাহক সংখ্যা</th>
+                                <th rowspan='2' class='text-center align-middle'>বকেয়া</th>
+                            </tr>
+                            <tr>
+                                <th>মোট</th>
+                                <th>সংযোগকৃত</th>
+                                <th>বিচ্ছিন্ন</th>
+                            </tr>
+                        </thead>
+                        {% for area in area_details %}
+                        <tr>
+                            <td class='px-3'>{{ area.name }}</td>
+                            <td class='px-3'>{{ area.total }}</td>
+                            </td>
+                            <td class='px-3'>{{ area.active }}</td>
+                            </td>
+                            <td class='px-3'>{{ area.inActive }}</td>
+                            <td class='px-3'>{{ area.dues }}</td>
+                        </tr>
+
+                        {% endfor %}
+
+                        <tr>
+                            <th class='px-3'>সর্বমোট</th>
+                            <th class='px-3'>{{ total_details.0 }} জন</th>
+                            <th class='px-3'>{{ total_details.1 }} জন</th>
+                            <th class='px-3'>{{ total_details.2 }} জন</th>
+                            <th class='px-3'>{{ total_details.3 }} টাকা</th>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+            {% endif %}
+            <!-- END Customer History -->
+
+            <!-- SMS Section -->
+            <div id="sms-info" class="tab-pane fade"><br></div>
+            <!-- END SMS Section -->
+        </div>
+
+ {% if user.is_collector %}
+        <section class='bg-light shadow border rounded mx-3 p-3'>
+            <h5>আমার বিল গ্রহনের প্রতিবেদন</h5>
+            <hr>
+            <form action="{% url 'user_report' %}" class="form-inline">
+                <div class="input-group">
+                    <select class="form-control" name="user" required readonly>
+                        <option value={{user.id}}>{{user.get_full_name}}</option>
+                    </select>
+
+                    <select class="form-control" name="month" required>
+                        <option value=''>মাস নির্বাচন করুন</option>
+                        <option value="1">Jan</option>
+                        <option value="2">Feb</option>
+                        <option value="3">Mar</option>
+                        <option value="4">Apr</option>
+                        <option value="5">May</option>
+                        <option value="6">Jun</option>
+                        <option value="7">Jul</option>
+                        <option value="8">Aug</option>
+                        <option value="9">Sep</option>
+                        <option value="10">Oct</option>
+                        <option value="11">Nov</option>
+                        <option value="12">Dec</option>
+                    </select>
+
+                    <select class="form-control" name="year" required>
+                        <option value=''>বছর নির্বাচন করুন</option>
+                        <option value="2020">2020</option>
+                        <option value="2021">2021</option>
+                        <option value="2022">2022</option>
+                        <option value="2023">2023</option>
+                        <option value="2024">2024</option>
+                        <option value="2025">2025</option>
+                        <option value="2026">2026</option>
+                    </select>
+                    <div class="input-group-append">
+                        <button class="input-group-text"><i class="fa fa-search"></i></button>
+                    </div>
+                </div>
+            </form>
+        </section>
+        {% endif %}
+        <!-- END user bill information -->
+
+        
+</div>
+{% endblock %}
+{% block footer %}
+{% include 'footer.html' %}
+{% endblock %}
