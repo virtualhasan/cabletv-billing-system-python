@@ -10,7 +10,6 @@ User = get_user_model()
 admin.site.unregister(Group)
 
 # Register your models here.
-
 admin.site.register(User)
 admin.site.register(Company)
 admin.site.register(Area)

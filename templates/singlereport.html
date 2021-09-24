@@ -80,17 +80,17 @@
           </thead>
           <tbody>
 
-          {% for payment in customer.payments.all %}
+          {% for payment in payment_list %}
               <tr>
                 <td>{{ forloop.counter }}</td>
                 <td>{{ payment.get_bill_month_name }}</td>
                 <td>{{ payment.totalAmount }} টাকা</td>
                 <td>{{ payment.discount }}</td>
                 <td>{{ payment.paidAmount }}</td>
-                <td>{{ payment.dues }}</td>
+                <td>{{ payment.get_this_payment_dues }}</td>
                 <td>{{ payment.createAt }}</td>
-                <td class='receiptvalue'>{{ payment.txnId }}</td>
-                <td>{{ payment.paidBy.first_name }}</td>
+                <td>{{ payment.txnId }}</td>
+                <td>{{ payment.paidBy.get_full_name }}</td>
               </tr>
 
           {% endfor %}

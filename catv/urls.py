@@ -1,6 +1,7 @@
-from os import name
-from django.urls import path
+
+from django.urls import path, include
 from . import views
+import debug_toolbar
 
 urlpatterns = [
     path('', views.index, name='index'),
@@ -26,4 +27,7 @@ urlpatterns = [
     path('sms_check/', views.sms_check_view, name='sms_check'),
 
     path('generate_bills/', views.generate_bills, name="generate_bills"),
+
+
+    path('__debug__/', include(debug_toolbar.urls)),
 ]

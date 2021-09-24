@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-
+{% load humanize %}
 {% block header %}
 {% include 'header.html' %}
 {% endblock %}
@@ -24,9 +24,6 @@
                 <a class="nav-link" data-toggle="tab" href="#client">গ্রাহক পরিসংখ্যান</a>
             </li>
             {% endif %}
-            <li id="smscheck" class="nav-item">
-                <a class="nav-link" data-toggle="tab" href="#sms-info">SMS</a>
-            </li>
         </ul>
 
         <!-- Tab panes -->
@@ -56,7 +53,7 @@
                             <td class='px-3'>{{ payment.customer.name }}</td>
                             <td class='px-3'>{{ payment.customer.area.name }}</td>
                             <td class='px-3'>{{ payment.paidAmount }}</td>
-                            <td class='px-3'>{{ payment.createAt }}</td>
+                            <td class='px-3'>{{ payment.createAt|naturaltime }}</td>
                             <td class='px-3'>{{ payment.txnId }}</td>
                             <td class='px-3'>{{ payment.paidBy.get_full_name }}</td>
                         </tr>
@@ -140,35 +137,30 @@
                                 <th>বিচ্ছিন্ন</th>
                             </tr>
                         </thead>
-                        {% for area in area_details %}
+                        {% for area in area_stats %}
                         <tr>
                             <td class='px-3'>{{ area.name }}</td>
                             <td class='px-3'>{{ area.total }}</td>
                             </td>
                             <td class='px-3'>{{ area.active }}</td>
                             </td>
-                            <td class='px-3'>{{ area.inActive }}</td>
-                            <td class='px-3'>{{ area.dues }}</td>
+                            <td class='px-3'>{{ area.inactive }}</td>
+                            <td class='px-3'>{{ area.total_dues }}</td>
                         </tr>
-
                         {% endfor %}
 
                         <tr>
                             <th class='px-3'>সর্বমোট</th>
-                            <th class='px-3'>{{ total_details.0 }} জন</th>
-                            <th class='px-3'>{{ total_details.1 }} জন</th>
-                            <th class='px-3'>{{ total_details.2 }} জন</th>
-                            <th class='px-3'>{{ total_details.3 }} টাকা</th>
+                            <th class='px-3'>{{ area_stats_total.total }} জন</th>
+                            <th class='px-3'>{{ area_stats_total.active }} জন</th>
+                            <th class='px-3'>{{ area_stats_total.inactive }} জন</th>
+                            <th class='px-3'>{{ area_stats_total.grand_total }} টাকা</th>
                         </tr>
                     </table>
                 </div>
             </div>
             {% endif %}
             <!-- END Customer History -->
-
-            <!-- SMS Section -->
-            <div id="sms-info" class="tab-pane fade"><br></div>
-            <!-- END SMS Section -->
         </div>
 
  {% if user.is_collector %}
@@ -177,10 +169,6 @@
             <hr>
             <form action="{% url 'user_report' %}" class="form-inline">
                 <div class="input-group">
-                    <select class="form-control" name="user" required readonly>
-                        <option value={{user.id}}>{{user.get_full_name}}</option>
-                    </select>
-
                     <select class="form-control" name="month" required>
                         <option value=''>মাস নির্বাচন করুন</option>
                         <option value="1">Jan</option>
@@ -212,7 +200,34 @@
                     </div>
                 </div>
             </form>
+
+            <form action="{% url 'user_report' %}" class="form-inline mt-3">
+                <div class="input-group">
+                   
+                    <input type="text" id="user-date" name='date' class="form-control" readonly />
+                    
+                    <div class="input-group-append">
+                        <button class="input-group-text"><i class="fa fa-search"></i></button>
+                    </div>
+                </div>
+            </form>
         </section>
+
+
+        {% comment %} <section class='bg-light shadow border rounded mx-3 p-3'>
+            <h5>আমার বিল গ্রহনের প্রতিবেদন</h5>
+            <hr>
+            <form action="{% url 'user_report' %}" class="form-inline">
+                <div class="input-group">
+                   
+
+                    
+                    <div class="input-group-append">
+                        <button class="input-group-text"><i class="fa fa-search"></i></button>
+                    </div>
+                </div>
+            </form>
+        </section> {% endcomment %}
         {% endif %}
         <!-- END user bill information -->
 

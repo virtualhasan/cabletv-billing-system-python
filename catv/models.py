@@ -1,8 +1,5 @@
-from enum import unique
 from django.db import models
-from django.db.models.aggregates import Sum
-from django.db.models.query_utils import PathInfo
-
+from django.db.models.aggregates import Sum 
 from django.utils import timezone
 from django.conf import settings
 
@@ -48,7 +45,7 @@ class Customer(models.Model):
     connectionAt = models.DateField(blank=True, null=True)
     tv = models.PositiveIntegerField(default=1)
     monthlyCharge = models.DecimalField(max_digits=6, decimal_places=2, default=200)
-    permanentDiscount = models.DecimalField(max_digits=6, decimal_places=2, default=0)
+    # permanentDiscount = models.DecimalField(max_digits=6, decimal_places=2, default=0)
 
     createBy = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.DO_NOTHING, related_name='created_user')
     updateBy = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.DO_NOTHING, related_name='updated_user')
@@ -59,15 +56,13 @@ class Customer(models.Model):
         return f'{self.id} - {self.name} - {self.area.name}'
 
     def get_total_dues(self):
-        unpaid_bills = self.bills.filter(isPaid=False)
-        dues = 0
-        if unpaid_bills:
-            for unpaid_bill in unpaid_bills:
-                dues += (unpaid_bill.monthlyCharge - unpaid_bill.permanentDiscount)
-
+        dues = self.bills.filter(isPaid=False).aggregate(total =Sum('monthlyCharge'))['total']
+        if dues is None:
+            dues = 0
+        
         last_payment = self.payments.last()
         if last_payment:
-            dues += last_payment.dues + last_payment.preDues
+            dues += last_payment.dues
         return dues
     
 
@@ -87,7 +82,7 @@ class Bill(models.Model):
     month = models.CharField(max_length=20)
     year = models.CharField(max_length=4)
     monthlyCharge = models.DecimalField(max_digits=6, decimal_places=2)
-    permanentDiscount = models.DecimalField(max_digits=6, decimal_places=2, default=0)
+    # permanentDiscount = models.DecimalField(max_digits=6, decimal_places=2, default=0)
     isPaid = models.BooleanField(default=False)
     customer = models.ForeignKey(Customer, on_delete=models.CASCADE, related_name='bills')
     payment = models.ForeignKey('Payment', null=True, blank=True, on_delete=models.DO_NOTHING, related_name='bills')
@@ -122,10 +117,8 @@ class Payment(models.Model):
     totalAmount = models.DecimalField(max_digits=7, decimal_places=2)
     paidAmount = models.DecimalField(max_digits=7, decimal_places=2)
     discount = models.DecimalField(max_digits=7, decimal_places=2, default=0)
-    #dues is this payment only
+    #total previous dues include this last payment
     dues = models.DecimalField(max_digits=7, decimal_places=2, default=0)
-    #preDues is total Dues exempt this payment 
-    preDues = models.DecimalField(max_digits=8, decimal_places=2, default=0)
     paymentMethod = models.CharField(max_length=20,choices=PAYMENT_METHOD, default=CASH)
     accountNumber = models.CharField(max_length=11, blank=True, default='')
     txnId = models.CharField(max_length=200)
@@ -140,9 +133,12 @@ class Payment(models.Model):
     def __str__(self):
         return f'{self.totalAmount}'
 
+    def get_this_payment_dues(self):
+        return self.totalAmount - (self.paidAmount + self.discount)
+
     def get_bill_month_name(self):
         bill_name = []
         bills = self.bills.all()
         for bill in bills:
-            bill_name.append (f"{bill.month}-{bill.year}")
-        return bill_name
+            bill_name.append (f"{bill.month[:3]}-{bill.year}")
+        return ', '.join(bill_name)

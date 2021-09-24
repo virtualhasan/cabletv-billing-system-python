@@ -33,14 +33,14 @@
         {% endif %}
 
         <li class="nav-item dropdown">
-          <div class="avator nav-link dropdown-toggle text-light mx-md-5 m-0" href="#" data-toggle="dropdown">
+          <div class="avator nav-link dropdown-toggle text-light mx-md-5 m-md-0 p-md-0" href="#" data-toggle="dropdown">
             <img src={% static "/img/avator.jpg" %} alt="Avator" />
           </div> 
           <div class="dropdown-menu">
           {% if user.is_collector is False %}
             <a class="dropdown-item border-bottom" href="/settings">সেটিংস</a>
           {% endif %}
-            <a class="dropdown-item border-bottom" href="#">প্রোফাইল</a>
+            <a class="dropdown-item border-bottom" href="{% url 'accounts:profile' %}">প্রোফাইল</a>
             <a class="dropdown-item" href="{% url 'accounts:logout' %}">Logout</a>
           </div>
         </li>

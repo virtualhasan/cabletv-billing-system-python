@@ -7,6 +7,9 @@ class User(AbstractUser):
     is_collector = models.BooleanField(default=False)
     is_admin = models.BooleanField(default=False)
 
+    class Meta:
+        verbose_name_plural = 'User'
+
 class AuditTable(models.Model):
     table = models.CharField(max_length=200)
     field = models.CharField(max_length=200)
@@ -15,6 +18,10 @@ class AuditTable(models.Model):
     new_value = models.TextField()
     add_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.DO_NOTHING)
     create_at = models.DateField(auto_now_add=True)
+
+
+    class Meta:
+        verbose_name_plural = 'History Table'
 
     def __str__(self):
         return f"{self.table} - {self.field}- by {self.add_by.username}"

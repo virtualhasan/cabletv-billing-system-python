@@ -1,3 +1,5 @@
+from django.db import transaction
+from django.db.models.expressions import OuterRef, Subquery
 from catv.forms import CustomerForm
 from accounts.models import AuditTable
 from datetime import datetime, timedelta
@@ -8,7 +10,7 @@ from django.db.models.aggregates import Count
 from django.db.models.query_utils import Q
 from django.utils import timezone
 from catv.models import Area, Bill, Customer, Payment
-from django.http.response import Http404, HttpResponse, HttpResponseRedirect, JsonResponse
+from django.http.response import Http404, HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.db.models import Sum
 from api.serializers import CustomerSerializer
@@ -17,57 +19,82 @@ from django.contrib.auth import get_user_model
 
 User = get_user_model()
 
+
+
+
 #this is for index page or Dashboard
 @login_required
 def index(request):
-
     # user_import()
-
 
     last_ten_payments = Payment.objects.all().order_by("-createAt")[:10]
     today = timezone.now()
-    collector_list = Payment.objects.filter(createAt__date=today).values('paidBy__first_name', 'paidBy__last_name').annotate(paidAmount=Sum('paidAmount')).annotate(discount=Sum('discount'))
 
+    #GEt Collector list for index page
+    collector_list = Payment.objects.filter(
+         createAt__date=today) \
+        .values('paidBy__first_name', 'paidBy__last_name') \
+        .annotate(paidAmount=Sum('paidAmount')) \
+        .annotate(discount=Sum('discount')
+    )
+
+    # if user is collection paymentlist will be this
     if request.user.is_collector:
-        collector_list = Payment.objects.filter(paidBy=request.user,createAt__date=today).values('paidBy__first_name', 'paidBy__last_name').annotate(paidAmount=Sum('paidAmount')).annotate(discount=Sum('discount'))
+        collector_list = Payment.objects.filter(
+            paidBy=request.user,
+            createAt__date=today) \
+            .values('paidBy__first_name', 'paidBy__last_name') \
+            .annotate(paidAmount=Sum('paidAmount')) \
+            .annotate(discount=Sum('discount')
+        )
 
     # Area wise Collection    
-    area_wise_collect = Payment.objects.filter(createAt__date=today).values('customer__area__name').annotate(paidAmount=Sum('paidAmount'))
+    area_wise_collect = Payment.objects.filter(
+        createAt__date=today) \
+        .values('customer__area__name')\
+        .annotate(paidAmount=Sum('paidAmount')
+    )
     area_wise_collect_total = area_wise_collect.aggregate(Sum('paidAmount')).get('paidAmount__sum')
 
 
-    area_info = Area.objects.all()
-    area_details = []
-    for area in area_info:
-        all_customer = area.customers.all()
-        total_dues = 0
-        active = 0
-        in_active = 0
-        for customer in all_customer:
-            total_dues += customer.get_total_dues()
-            if customer.isActive:
-                active += 1
-            else:
-                in_active += 1
-        area_details.append({
-            'name':area.name,
-            'dues': total_dues,
-            "total":all_customer.count(),
-            'active':active, 
-            'inActive':in_active
-        })
 
+   
     
+    area_stats = Area.objects.values('name') \
+        .annotate(total=Count('customers')) \
+        .annotate(active=Count('customers', filter=Q(customers__isActive=True))) \
+        .annotate(inactive=Count('customers', filter=Q(customers__isActive=False))) \
+ 
+
+    qs2= Payment.objects.filter(customer__area=OuterRef('id')).order_by('-id').values('dues')[:1]
+    area_wise_dues = Area.objects.values('name').annotate(
+        unpaid_bill_dues= Sum('customers__bills__monthlyCharge', filter=Q(customers__bills__isPaid=False)),
+        last_payment_dues = Subquery(qs2)
+    )
+
+    new_area = list(area_stats)
     grand_total = 0
-    grand_active = 0
-    grand_inActive = 0
-    grand_total_dues = 0
-    for area_total in area_details:
-        grand_total += area_total['total']
-        grand_active += area_total['active']
-        grand_inActive += area_total['inActive']
-        grand_total_dues += area_total['dues']
-    total_array = [grand_total, grand_active, grand_inActive, grand_total_dues]
+    for key, test in enumerate(area_wise_dues):
+        if test['last_payment_dues'] == None:
+            test['last_payment_dues'] = 0
+        if test['unpaid_bill_dues'] == None:
+            test['unpaid_bill_dues'] = 0
+
+
+        test['total_dues'] = test['unpaid_bill_dues'] + test['last_payment_dues']
+        grand_total += test['total_dues']
+        new_area[key]['total_dues'] = test['total_dues']
+        
+
+
+    area_stats_total = {
+        'total': area_stats.aggregate(Sum('total'))['total__sum'],
+        'grand_total': grand_total,
+        'active': area_stats.aggregate(Sum('active'))['active__sum'],
+        'inactive': area_stats.aggregate(Sum('inactive'))['inactive__sum'],
+    }
+
+
 
 
     context = {
@@ -75,17 +102,17 @@ def index(request):
         'collector_list':collector_list,
         'area_wise_collect':area_wise_collect,
         'area_wise_collect_total':area_wise_collect_total,
-        'area_details':area_details,
-        'total_details':total_array,      
+        'area_stats':new_area,
+        'area_stats_total':area_stats_total,  
     }
     return render(request, 'index.html', context)
 
 
 #Page Customer funtionlity
 @login_required
-@user_passes_test(lambda user: user.is_superuser or user.is_admin)
+# @user_passes_test(lambda user: user.is_superuser or user.is_admin)
 def customers(request):
-    customers = Customer.objects.all()
+    customers = Customer.objects.select_related('area').all()
     area_list = Area.objects.all()
     
     form = CustomerForm()
@@ -99,7 +126,7 @@ def customers(request):
 
 
 @login_required
-@user_passes_test(lambda user: user.is_superuser or user.is_admin)
+# @user_passes_test(lambda user: user.is_superuser or user.is_admin)
 def add_customers(request):
     area = Area.objects.all()
     customers = Customer.objects.all().order_by('-createAt')[:10]
@@ -110,28 +137,51 @@ def add_customers(request):
 @user_passes_test(lambda user: user.is_superuser or user.is_admin)
 def customer_inactive(request, id):
     customer = get_object_or_404(Customer, id=id)
-    isActive = json.loads(request.POST.get('isActive'))
+    is_active =json.loads(request.POST.get('isActive'))
+    is_bill_delete_or_generate = json.loads(request.POST.get('isBillDeleteOrGenerate'))
+    today = timezone.now()
 
     if request.method == "POST":
         try:
-            AuditTable.objects.create(
-                table='Customer', 
-                field='isActive',
-                record_id=id, 
-                old_value=customer.isActive, 
-                new_value=isActive,
-                add_by= request.user
-                )
+            with transaction.atomic():
+                customer.isActive = not is_active #if active customer then it will be inactive
+                customer.updateBy = request.user
+                customer.save()
 
+                if is_active: #if user want to customer inactive and last bill delete
+                    if is_bill_delete_or_generate:
+                        Bill.objects.filter(
+                            customer=customer, 
+                            month=today.strftime('%B'), 
+                            year=today.year,
+                            isPaid=False
+                        ).delete()
+                else:
+                    if is_bill_delete_or_generate: # if user want to customer active and generate last month bill
+                        Bill.objects.create(
+                            month=today.strftime('%B'),
+                            year=today.year,
+                            customer=customer,
+                            monthlyCharge= customer.monthlyCharge,
+                            createBy=request.user
+                        )
 
-            customer.isActive = isActive
-            customer.updateBy = request.user
-            customer.save()
-            
-            return JsonResponse({'success':True})
+                AuditTable.objects.create(
+                        table='Customer', 
+                        field='isActive',
+                        record_id=id, 
+                        old_value=customer.isActive, 
+                        new_value=not is_active,
+                        add_by= request.user
+                        )
+
+                return JsonResponse({'success':True})
+
         except:
             return JsonResponse({'success':False, 'message':'not update'})
-    return JsonResponse(status=500)
+    return JsonResponse(data={'message':'ok'},status=500)
+       
+    
 
 
 @login_required
@@ -178,12 +228,14 @@ def reports(request):
 def single_report(request):
     id = request.GET.get('id', None)
     try:
-        customer = Customer.objects.get(id=id)
+        customer = Customer.objects.select_related('area').get(id=id)
+        payments = customer.payments.all().order_by('-id')
     except Customer.DoesNotExist:
         raise Http404
 
     context = {
         'customer':customer,
+        'payment_list': payments,
     }
     return render(request, 'singlereport.html', context=context) 
 
@@ -224,10 +276,13 @@ def area_report(request):
     area_name = Area.objects.get(id=area_id).name
 
     if isActive == '2':
-        customers = Customer.objects.filter(area=area_id)
+        customers = Customer.objects.select_related('area').filter(area=area_id)
     else:
-        customers = Customer.objects.filter(area=area_id, isActive=isActive)
+        customers = Customer.objects.select_related('area').filter(area=area_id, isActive=isActive)
 
+    all = [[customer.get_total_dues(), customer.this_month_paid_amount() if customer.this_month_paid_amount() != '' else 0] for customer in customers]
+    total_dues = sum([ one[0] for one in all])
+    total_paid = sum([ one[1] for one in all])
 
     today = timezone.now()
     first = today.replace(day=1)
@@ -238,6 +293,8 @@ def area_report(request):
         'area_name':area_name,
         'month_name':month_name,
         'customer_list':customers,
+        'total_dues':total_dues,
+        'total_paid':total_paid,
     }
     return render(request, 'area-report.html', context)
 
@@ -249,15 +306,21 @@ def user_report_view(request):
     user_id = request.GET.get('user', None)
     month = request.GET.get('month', None)
     year = request.GET.get('year', None)
+    date = request.GET.get('date', None)
     user = get_object_or_404(User, id=user_id)
     full_name = user.get_full_name()
 
-    payment_list = Payment.objects.filter(paidBy=user, createAt__month=month, createAt__year=year)
-
+    if date:
+        payment_list = Payment.objects.filter(paidBy=user, createAt__date=date)
+    else:
+        payment_list = Payment.objects.filter(paidBy=user, createAt__month=month, createAt__year=year)
 
     if request.user.is_collector:   
         full_name = request.user.get_full_name()
-        payment_list = Payment.objects.filter(paidBy=request.user, createAt__month=month, createAt__year=year)
+        if date:
+            payment_list = Payment.objects.filter(paidBy=request.user, createAt__date=date)
+        else:
+            payment_list = Payment.objects.filter(paidBy=request.user, createAt__month=month, createAt__year=year)
 
     
     total = payment_list.aggregate(Sum('paidAmount'))['paidAmount__sum']
@@ -295,24 +358,19 @@ def settings_view(request):
 #Check sms balance from api
 def sms_check_view(request):
     try:
-        response = requests.get(f'https://api.greenweb.com.bd/g_api.php?token={settings.SMS_API_TOKEN}&balance&expiry&json', timeout=10)
+        response = requests.get(f'https://api.greenweb.com.bd/g_api.php?token={settings.SMS_API_TOKEN}&balance&expiry&json&rate', timeout=10)
         sms_balance = response.json()[0]['response']
         sms_expiry_date = response.json()[1]['response']
+        sms_rate = response.json()[2]['response']
     except requests.exceptions.RequestException:
         return JsonResponse({"message":"error"})
 
     context = {
         'balance':sms_balance,
         'expiry':sms_expiry_date,
+        'rate':sms_rate,
     }
     return JsonResponse(context)
-
-
-
-from .utils import monthly_bill_generator, user_import
-def generate_bills(request):
-    if monthly_bill_generator():
-        return JsonResponse({"success":True, "message":"bill generated"})
 
 
 
@@ -320,33 +378,45 @@ def generate_bills(request):
 @login_required
 @user_passes_test(lambda user: user.is_superuser or user.is_admin)
 def previous_bill_updater(request, id):
-    preDues = int(request.POST.get('preDues', None)) # get total previous dues from user
+    preDues = int(request.POST.get('preDues', 0)) # get total previous dues from user
     customer = get_object_or_404(Customer, id=id)
     monthly_charge = customer.monthlyCharge 
-    permanent_discount = customer.permanentDiscount
 
-    fraction_dues = preDues % (monthly_charge - permanent_discount) # get fraction dues from total dues
-    total_month = int(preDues // (monthly_charge - permanent_discount))
+
+    fraction_dues = preDues % monthly_charge  # get fraction dues from total dues
+    total_month = int(preDues // monthly_charge)
     today = timezone.now().replace(day=1) # point current month
 
-    counter = 0
-    while counter < total_month:
-        today -= timedelta(days=1)
-        month_name = today.strftime('%B')
+    if preDues < monthly_charge : #this is for when predues is less then monthlycharge
+        total_month = 1
+        monthly_charge = 0
 
-        if not Bill.objects.filter(month=month_name, year=today.year, customer=customer):
-            if counter == total_month-1:
-                monthly_charge += fraction_dues
+    with transaction.atomic():
+        counter = 0
+        while counter < total_month:
+            today -= timedelta(days=1)
+            month_name = today.strftime('%B')
 
-            Bill.objects.create(
-                month=month_name,
-                year= today.year,
-                monthlyCharge=monthly_charge,
-                permanentDiscount=permanent_discount,
-                customer=customer
-                )
-            counter += 1 # increase counter
+            if not Bill.objects.filter(month=month_name, year=today.year, customer=customer):
+                if counter == total_month-1:
+                    monthly_charge += fraction_dues
 
-    return JsonResponse({'success':True,'message':'updated'})
+                Bill.objects.create(
+                    month=month_name,
+                    year= today.year,
+                    monthlyCharge=monthly_charge,
+                    customer=customer
+                    )
+                counter += 1 # increase counter
+
+        return JsonResponse({'success':True,'message':'updated'})
+    return JsonResponse({'message':'error'})
 
 
+
+
+
+from .utils import area_import, monthly_bill_generator, user_import
+def generate_bills(request):
+    if monthly_bill_generator():
+        return JsonResponse({"success":True, "message":"bill generated"})

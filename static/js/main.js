@@ -21,12 +21,12 @@ $(document).ready(function () {
 
     // Date time Widget Area
     $(function () {
-        $("#connectionAt").datepicker({
+        $("#connectionAt, #user-date").datepicker({
             changeMonth: true,
             changeYear: true,
             dateFormat: 'yy-mm-dd'
         });
-        $("#connectionAt").datepicker('setDate', 'today')
+        $("#connectionAt, #user-date").datepicker('setDate', 'today')
 
         $("#date").datepicker({
             changeMonth: true,
@@ -94,6 +94,8 @@ $(document).ready(function () {
         event.preventDefault()
     })
 
+
+
     // Customer Update Funtionality
     $(document).on('click', '.update-btn', function () {
         let id = $(this).data('id')
@@ -118,7 +120,7 @@ $(document).ready(function () {
             $('#tv').val(data.tv)
             $('#occupation').val(data.occupation)
             $('#monthlyCharge').val(data.monthlyCharge)
-            $('#permanentDiscount').val(data.permanentDiscount)
+            // $('#permanentDiscount').val(data.permanentDiscount)
         })
 
 
@@ -129,12 +131,13 @@ $(document).ready(function () {
             let fatherName = $('#fatherName').val()
             let address = $('#address').val()
             let area = $('#area').val()
-            let mobileNumber = $("#mobileNumer").val()
+            let mobileNumber = $("#mobileNumber").val()
             let nidNumber = $("#nidNumber").val()
+            let connectionFee = $('#connectionFee').val()
             let tv = $('#tv').val()
             let occupation = $('#occupation').val()
             let monthlyCharge = $('#monthlyCharge').val()
-            let permanentDiscount = $('#permanentDiscount').val()
+            // let permanentDiscount = $('#permanentDiscount').val()
 
             let contextData = {
                 name,
@@ -143,10 +146,11 @@ $(document).ready(function () {
                 area,
                 mobileNumber,
                 nidNumber,
+                connectionFee,
                 tv,
                 occupation,
                 monthlyCharge,
-                permanentDiscount
+                // permanentDiscount
             }
 
             $.ajax({
@@ -186,7 +190,214 @@ $(document).ready(function () {
     })
 
 
+    // previous bill updater function
+    $(document).on('click', '.bill-update-btn', function () {
+        let id = $(this).data('id')
+        let billUpdateModal = $('#bill-update-modal')
 
+        billUpdateModal.html(`<div class="modal-dialog" role="document">
+                                <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title" id="exampleModalLabel">পূর্বের বকেয়া সম্পদনা</h5>
+                                
+                                </div>
+                                <div class="modal-body">
+                                    <form class="form-inline justify-content-center">
+                                    <div class="input-group mb-3">
+                                        <div class="input-group-prepend">
+                                        <span class="input-group-text">বকেয়ার পরিমান লিখুন</span>
+                                        </div>
+                                        <input class="form-control" id="bill-update-field" min="0" type="number">
+                                    </div>
+                                    </form>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-danger" data-dismiss="modal">বাতিল</button>
+                                    <button type="button" class="btn btn-primary">বিল তৈরী করুন</button>
+                                </div>
+                                </div>
+                            </div>`)
+
+
+
+
+        billUpdateModal.modal('show')
+        billUpdateModal.find('.btn-primary').click(function () {
+            billUpdateModal.find('.btn-danger').attr('disabled', true)
+            $(this).html('<span class="spinner-border spinner-border-sm"></span>').attr('disabled', true)
+
+            let preBillAmount = billUpdateModal.find('.form-control').val()
+            if (preBillAmount != '' || preBillAmount != '0') {
+
+                $.ajax({
+                    method: 'post',
+                    url: '/previous_bill_updater/' + id + '/',
+                    dataType: 'json',
+                    beforeSend: function (request) {
+                        request.setRequestHeader('X-CSRFToken', csrftoken)
+                    },
+                    data: {
+                        preDues: preBillAmount
+                    },
+                    success: function (data) {
+                        console.log(data)
+                        billUpdateModal.modal('hide')
+                    },
+                    error: function (error) {
+                        console.log(error)
+                    }
+                })
+            }
+
+        })
+
+    })
+
+
+
+
+
+
+    // active inactive code here
+    $(document).on('click', '.inactive-btn', function () {
+        const inactiveBtn = $(this)
+        let id = inactiveBtn.data('id')
+        let isActive = inactiveBtn.data('isactive') == 'active' ? true : false
+        let inactiveModal = $('#inactive-modal')
+
+        inactiveModal.html(`<div class="modal-dialog modal-confirm">
+                                    <div class="modal-content">
+                                    <div class="modal-header flex-column">
+                                        <div class="icon-box">
+                                        <i class="fas fa-times"></i>
+                                        </div>
+                                        <h4 class="modal-title w-100"></h4>
+                                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <div class="custom-control custom-checkbox">
+                                        <input type="checkbox" class="custom-control-input" id="bill-confirm-btn">
+                                        <label class="custom-control-label" for="bill-confirm-btn"></label>
+                                        </div>
+                                
+                                    </div>
+                                    <div class="modal-footer justify-content-center">
+                                        <button type="button" class="btn btn-secondary" data-dismiss="modal">বাতিল</button>
+                                        <button id="modal-inactive-btn" type="button" class="btn"></button>
+                                    </div>
+                                    </div>
+                                </div>`)
+
+
+        inactiveModal.modal('show')
+        let modalIactiveButton = $('#modal-inactive-btn')
+        let billConfirmButton = $("#bill-confirm-btn")
+
+
+
+        // this action for Disconnections
+        if (isActive) {
+            inactiveModal.find('.icon-box').html('<i class="fas fa-times"></i>').removeClass('border-success')
+            inactiveModal.find('.modal-title').html('এই গ্রাহককে বিচ্ছিন্ন করতে চান?')
+            modalIactiveButton.html('বিচ্ছিন্ন করুন').addClass('btn-danger').removeClass('btn-success')
+            billConfirmButton.next().html('<h5>এই মাসের বিলটি ডিলিট হবে?</h5>')
+        } else {
+            inactiveModal.find('.icon-box').html('<i class="fas fa-check text-success"></i>').addClass('border-success')
+            inactiveModal.find('.modal-title').html('<span class="text-success">আপনি কি সচল করতে চান?</span>')
+            modalIactiveButton.html('সচল করুন').addClass('btn-success').removeClass('btn-danger')
+            billConfirmButton.next().html('<h5>এই মাসের বিল তৈরী হবে?</h5>')
+        }
+
+
+        modalIactiveButton.click(function () {
+
+            context = {
+                isActive: isActive,
+                isBillDeleteOrGenerate: billConfirmButton.is(':checked')
+            }
+
+
+            $.ajax({
+                beforeSend: function (request) {
+                    request.setRequestHeader('X-CSRFToken', csrftoken)
+                },
+                method: 'POST',
+                url: "/customers/" + id + '/inactive/',
+                dataType: 'json',
+                cache: true,
+                data: context,
+                success: function (data) {
+                    inactiveModal.modal('hide')
+                    console.log(data)
+                    if (isActive) {
+                        inactiveBtn
+                            .addClass('btn-danger')
+                            .removeClass('btn-success')
+                            .html('<i class="fa fa-check"></i>')
+                            .data('isactive', 'inactive')
+                    } else {
+                        inactiveBtn
+                            .addClass('btn-success')
+                            .removeClass('btn-danger')
+                            .html('<i class="fa fa-times"></i>')
+                            .data('isactive', 'active')
+
+                    }
+                }
+            })
+        })
+    })
+
+
+    // Delete funtionality here 
+    $(document).on('click', '.delete-btn', function () {
+        // let id = $(this).data('id')
+
+
+        const modal = $(`<div class="modal-dialog modal-confirm">
+                            <div class="modal-content">
+                            <div class="modal-header flex-column">
+                                <div class="icon-box">
+                                <i class="fas fa-times"></i>
+                                </div>
+                                <h4 class="modal-title w-100">আপনি কি নিশ্চিত?</h4>
+                                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                            </div>
+                            <div class="modal-body">
+                                <p>আপনি কি সত্যিই এই গ্রাহককে মুছে ফেলতে চান? এই গ্রাহককে আর ফেরানো যাবে না।</p>
+                            </div>
+                            <div class="modal-footer justify-content-center">
+                                <button type="button" class="btn btn-secondary" data-dismiss="modal">বাতিল</button>
+                                <button id="modal-delete-btn" type="button" class=" btn btn-danger">ডিলিট করুন</button>
+                            </div>
+                            </div>
+                        </div>`)
+
+
+
+        const deleteBtn = $(this)
+        const deleteModal = $('#delete-modal')
+        deleteModal.html(modal)
+        deleteModal.modal('show')
+
+        $('#modal-delete-btn').click(function () {
+            let id = deleteBtn.data('id')
+            console.log(id)
+
+            $.ajax({
+                method: 'delete',
+                url: '/api/customers/' + id + '/',
+                beforeSend: function (request) {
+                    request.setRequestHeader('X-CSRFToken', csrftoken)
+                },
+                success: function (data) {
+                    deleteModal.modal('hide')
+                    deleteBtn.parent().parent().remove()
+
+                }
+            })
+        })
+    })
 
 
     //for bill query by ID NUMBER
@@ -204,52 +415,6 @@ $(document).ready(function () {
         }
 
     });
-
-    // active inactive code here
-    $(document).on('click', '.inactive-btn', function () {
-        let id = $(this).data('id')
-        let isActive = $(this).data('isactive') == 'inactive' ? false : true
-
-        if (confirm("Are you Sure?")) {
-            $.ajax({
-                beforeSend: function (request) {
-                    request.setRequestHeader('X-CSRFToken', csrftoken)
-                },
-                method: 'POST',
-                url: "/customers/" + id + '/inactive/',
-                dataType: 'json',
-                cache: true,
-                data: {
-                    isActive: JSON.stringify(isActive)
-                },
-                success: function (data) {
-                    console.log(data)
-                    location.reload()
-                }
-            })
-        }
-
-    })
-
-
-    // Delete funtionality here 
-    $(document).on('click', '.delete-btn', function () {
-        let id = $(this).data('id')
-
-        if (confirm('Are You sure For Delete')) {
-            $.ajax({
-                method: 'delete',
-                url: '/api/customers/' + id + '/',
-                beforeSend: function (request) {
-                    request.setRequestHeader('X-CSRFToken', csrftoken)
-                },
-                success: function (data) {
-                    console.log(data)
-                    location.reload()
-                }
-            })
-        }
-    })
 
 
 
@@ -287,7 +452,7 @@ $(document).ready(function () {
                 getBills(customerId)
 
                 let mobile = (customer.monbileNumber) ? "যুক্ত করা হয়নি" : customer.mobileNumber;
-                let condition = customer.isActive ? '<td class="text-light bg-success rounded">সংযোগকৃত</td>' : '<td class="text-light bg-danger rounded">বিচ্ছিন্ন</td>'
+                let condition = customer.isActive ? '<td class="text-light bg-success rounded px-2">সংযোগকৃত</td>' : '<td class="text-light bg-danger rounded">বিচ্ছিন্ন</td>'
                 let duesInfo = customer.totalDues !== 0 ? "<span id='totalDues'>" + customer.totalDues + "</span>  টাকা<small class='text-light bg-danger rounded ml-2 px-2'> <span id='totalMonth'></span> মাস</small>" : 'নেই'
 
                 // customer details div
@@ -353,6 +518,9 @@ $(document).ready(function () {
 
                 var totalMonth = bills.length
                 if (totalMonth > 0) {
+                    //call sms check
+                    sms_check()
+
                     $("#payment").show();
                     $("#totalMonth").html(totalMonth)
 
@@ -403,9 +571,6 @@ $(document).ready(function () {
     $("#paybtn").click(function (event) {
         event.preventDefault()
 
-
-
-
         if (paidBills.length > 0) {
             $("#paybtn").prop('disabled', true)
             $("#paybtn").html('<span class="spinner-border spinner-border-sm"></span>')
@@ -414,7 +579,7 @@ $(document).ready(function () {
             let userid = $("#billid").val();
             let paidAmount = parseInt($("#amount").val()) || 0;
             let discount = parseInt($("#discount").val()) || 0;
-            let txnId = parseInt($("#receipt").val()) || 0;
+            let txnId = $("#receipt").val();
             let bills = paidBills;
             let isSms = $("#sms").prop('checked') ? true : false
 
@@ -557,27 +722,17 @@ $(document).ready(function () {
 
 
     // Check sms balance and expiry date
-    $('#smscheck').click(function () {
-        $('#sms-info').html(`<div class='bg-primary text-light mb-3 p-3 rounded'>
-            <span>অপেক্ষা করুন................</span>
-        </div>`)
-
+    function sms_check() {
         $.get('/sms_check/', function (data) {
-            if (data.balance != 0) {
-                $('#sms-info').html(`<div class='bg-primary text-light mb-3 p-3 rounded'>
-                এসএমএস রয়েছে 
-                <span class='bg-danger px-2 rounded'>${data.balance}</span>
-                টি। মেয়াদ আছে 
-                <span class='bg-danger px-2 rounded' >${data.expiry}</span> 
-                পর্যন্ত।";
-            </div>`)
-            } else {
-                $('#sms-info').html(`<div class='bg-primary text-light mb-3 p-3 rounded'>
-                        <span class='bg-danger px-2 rounded'>এসএমএস নেই।</span>
-                        <a class='text-light' href='http://sms.greenweb.com.bd'>কিনতে এখানে ক্লিক করুন</a>
-                    </div>`)
-            }
+            let totalSms = Math.round((data.balance / data.rate) / 2)
 
+            if (data.balance != 0) {
+                $('#sms-balance').html(totalSms)
+            } else {
+                $('#sms-balance').html(`<a class='text-light' href='http://sms.greenweb.com.bd'>ক্লিক করুন</a> `)
+                $('#sms').attr('disabled', true)
+                $('#sms').attr('checked', false)
+            }
         })
-    })
+    }
 })

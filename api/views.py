@@ -1,3 +1,6 @@
+import json
+from django.conf import settings
+import requests
 from catv.views import customers
 from catv.models import Area, Bill, Customer, Payment
 from django.http.response import Http404
@@ -186,10 +189,10 @@ class CustomerWisePayment(APIView):
 
     #For Add Payment
     def post(self, request, id):
-        print(request.data)
-        
         customer = self.get_object(id)
         is_sms = request.data.pop('isSms')
+        
+       
         bills = request.data.pop('bills', [])
         bill_objects = [Bill.objects.get(id=new_bill_id, customer=id) for new_bill_id in bills]
         total_amount = self._get_total_amount(bill_objects)
@@ -204,11 +207,11 @@ class CustomerWisePayment(APIView):
             paid_amount = serializer.validated_data.get('paidAmount',0)
             discount = serializer.validated_data.get('discount',0)
             dues = total_amount - (paid_amount + discount)
+            txnid = serializer.validated_data.get('txnId','')
 
             payment = Payment(**serializer.data)
             payment.totalAmount = total_amount
-            payment.dues = dues
-            payment.preDues = pre_dues
+            payment.dues = dues + pre_dues
             payment.customer = customer
             payment.paidBy = request.user
 
@@ -218,7 +221,30 @@ class CustomerWisePayment(APIView):
                     bill_object.isPaid = True
                     bill_object.payment = payment
                     bill_object.save()
-                    
+                
+                bangla_message= f'প্রিয় {customer.name}, আপনি ক্যাবল টিভি বিল {paid_amount:.0f} টাকা {txnid} রসিদে পরিশোধ করা হয়েছে। বকেয়া {customer.get_total_dues()} টাকা'
+                print(bangla_message)
+
+                if is_sms:
+                    message = f'Dear User, {customer.id}. Your cable tv bill successfully paid. Amount {paid_amount} discount {discount} receipt {txnid}'
+                    bangla_message= f'প্রিয় {customer.name}({customer.id}), খোরশেদ ক্যাবল টিভি বিল {paid_amount:.0f} টাকা {txnid} রসিদে পরিশোধ করা হয়েছে। বকেয়া {customer.get_total_dues():.0f} টাকা, Contact:01822869591'
+                    try:
+                        if customer.mobileNumber != '0' or customer.mobileNumber != '':
+                            response = requests.post(
+                                'http://api.greenweb.com.bd/api.php', 
+                                data={
+                                    'token': settings.SMS_API_TOKEN,
+                                    'to':customer.mobileNumber,
+                                    'message':bangla_message
+                                }
+                            )
+
+                            print(response.text)
+                    except:
+                        pass
+                        
+
+
                 return Response({"success":True, "message":"payment successfull"})
         return Response(serializer.errors)
 
@@ -232,13 +258,13 @@ class CustomerWisePayment(APIView):
     def _get_total_amount(self, bills):
         total_amount = 0 
         for bill in bills:
-            total_amount += (bill.monthlyCharge - bill.permanentDiscount)
+            total_amount += bill.monthlyCharge
         return total_amount
 
     def _get_previous_dues(self, customer_id):
         payment = Payment.objects.filter(customer=customer_id).last()
         if payment:
-            dues = payment.preDues + payment.dues
+            dues = payment.dues
             return dues
         return 0
 

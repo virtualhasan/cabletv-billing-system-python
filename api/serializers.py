@@ -46,7 +46,7 @@ class BillSerializer(serializers.ModelSerializer):
         fields = ('id', 'month', 'year', 'monthlyCharge', 'isPaid')
 
     def get_monthlyCharge(self, obj):
-        return (obj.monthlyCharge - obj.permanentDiscount)
+        return obj.monthlyCharge
 
 
 class PaymentSerializer(serializers.ModelSerializer):

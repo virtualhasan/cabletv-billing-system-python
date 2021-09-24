@@ -5,11 +5,6 @@
 {% endblock %}
 
 {% block main %}
-<!-- Button trigger modal -->
-<!-- <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#customerModal">
-  Launch demo modal
-</button> -->
-
 <!-- Modal -->
 <div class="modal fade" id="customerModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
   aria-hidden="true">
@@ -88,7 +83,7 @@
 
             </div>
             <div class="col-sm form-group">
-              <label for="tv">TV</label>
+              <label for="tv">টিভি</label>
               <select id="tv" class="form-control" name="tv">
                 <option value="1">1</option>
                 <option value="2">2</option>
@@ -101,31 +96,38 @@
             <div class="col-sm form-group">
               <label for="monthlyCharge">মাসিক বিল</label>
               <input type="number" value="200" class="form-control" id="monthlyCharge" name="mmonthlyCharge" required>
-
-            </div>
-            <div class="col-sm form-group">
-              <label for="permanentDiscount">ডিসকাউন্ট</label>
-              <input value="0" type="number" class="form-control" id="permanentDiscount" name="permanentDiscount">
             </div>
           </div>
-          <!-- <button class="btn btn-primary" type="submit" name="add">যুক্ত করুন</button> -->
-          <!-- <button class="btn btn-info" type="submit" name="update">Update</button> -->
-          <!-- <button id="delete" class="btn btn-danger" type="submit">Delete</button> -->
-
           <div class="modal-footer">
-            <button class="btn btn-secondary" data-dismiss="modal">Close</button>
+            <button class="btn btn-secondary" data-dismiss="modal">বাতিল</button>
             <button class="btn btn-primary" id='customer-add-submit' type="submit" name="add">যুক্ত করুন</button>
-            <!-- <button class="btn btn-primary"  >পরিবর্তন করুন</button> -->
           </div>
         </form>
-
       </div>
-
-
-
     </div>
   </div>
 </div>
+<!--END Customer Modal-->
+
+
+<!--Start Delete Modal -->
+<div id="delete-modal" class="modal fade">
+</div>
+<!--END Delete Modal-->
+
+<!--Start Inactive/active Modal -->
+<div id="inactive-modal" class="modal fade">
+</div>
+<!--END Inactive/active Modal-->
+
+
+
+<!--START Bill Updater Modal-->
+<div class="modal fade" data-backdrop="static" data-keyboard="false" id="bill-update-modal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+  aria-hidden="true">
+</div>
+<!--END Bill Updater Modal-->
+
 
 
 <section class="mt-5 container-fluid">
@@ -133,14 +135,14 @@
     যুক্ত করুন</a>
   <!-- <div class="table-responsive"> -->
   <table width="100%" id='customer_table_id' class="table table-sm table-bordered table-striped table-hover">
-    <thead>
+    <thead class='text-center'>
       <th>আইডি</th>
       <th>নাম</th>
       <th>ঠিকানা</th>
       <th>এলাকা</th>
       <th>মোবাইল</th>
-      <th>মাসিক বিল</th>
-      <th class='text-center'>Actions</th>
+      <th class='text-nowrap'>মাসিক বিল</th>
+      <th></th>
     </thead>
     <tbody>
 
@@ -157,20 +159,35 @@
           <a href='/single_report/?id={{ customer.id }}' class='btn btn-sm  btn-info mx-1'> <i class="fa fa-info"></i>
           </a>
           {% else %}
+
+          
           {% if customer.isActive %}
-          <button data-id='{{ customer.id }}' data-isactive="inactive"
+          <button data-id='{{ customer.id }}' data-isactive="active" 
             class='inactive-btn btn btn-sm btn-success mx-2'><i class="fa fa-times"></i></button>
           {% else %}
-          <button data-id='{{ customer.id }}' data-isactive="active" class='inactive-btn btn btn-sm btn-warning mx-2'><i
-              class="fa fa-check"></i></button>
+          <button data-id='{{ customer.id }}' data-isactive="inactive"
+            class='inactive-btn btn btn-sm btn-danger mx-2'><i class="fa fa-check"></i></button>
           {% endif %}
+
 
           <button data-id={{ customer.id }} class='update-btn btn btn-sm btn-primary mx-1'><i
               class="fa fa-edit"></i></button>
+
+
+
+          <button data-id={{ customer.id }} class='bill-update-btn btn btn-sm btn-primary mx-1'><i
+              class="fa fa-calculator"></i></button>
+
+
+
           <a href='/single_report/?id={{ customer.id }}' class='btn btn-sm  btn-info mx-1'> <i class="fa fa-info"></i>
           </a>
+
+
+          {% if user.is_superuser %}
           <button data-id={{ customer.id }} class='delete-btn btn btn-sm btn-danger'><i
               class="fa fa-trash"></i></button>
+          {% endif %}
           {% endif %}
         </td>
       </tr>

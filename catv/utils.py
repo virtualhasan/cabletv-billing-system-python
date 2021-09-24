@@ -1,5 +1,35 @@
-from .models import Area, Customer
 import json
+from datetime import timedelta
+from .models import Area, Customer, Bill
+from django.utils import timezone
+
+
+def monthly_bill_generator():
+    today = timezone.now().replace(day=1) - timedelta(days=1)
+    year = today.year
+    month = today.strftime("%B")
+    print(year)
+    print(month)
+
+    customers = Customer.objects.filter(isActive=True)
+    
+    for customer in customers:
+        print(customer)
+        bill = Bill.objects.filter(customer=customer, month=month, year=year)
+        if bill.exists():
+            print(f'Aready Generated for this {customer.name}')
+        else:
+            Bill.objects.create(
+                customer=customer,
+                month=month,
+                year=year,
+                monthlyCharge=customer.monthlyCharge,
+                # permanentDiscount=customer.permanentDiscount  
+            )
+    return True
+
+
+
 
 def area_import():
     areas = [
@@ -40,39 +70,3 @@ def user_import():
 
         customer.save()
         print('user creating')
-
-        
-
-
-
-
-
-from django.utils import timezone
-from .models import Bill, Customer
-def monthly_bill_generator():
-    today = timezone.now()
-    year = today.year
-    month = today.strftime("%B")
-    print(year)
-    print(month)
-
-    customers = Customer.objects.filter(isActive=True)
-    
-    for customer in customers:
-        print(customer)
-        bill = Bill.objects.filter(customer=customer, month=month, year=year)
-        if bill.exists():
-            print(f'Aready Generated for this {customer.name}')
-        else:
-            Bill.objects.create(
-                customer=customer,
-                month=month,
-                year=year,
-                monthlyCharge=customer.monthlyCharge,
-                permanentDiscount=customer.permanentDiscount  
-            )
-    return True
-
-
-
-

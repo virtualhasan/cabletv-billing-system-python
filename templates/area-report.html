@@ -6,7 +6,7 @@
     <table class="table table-sm table-bordered table-striped table-hover">
       <thead>
         <tr>
-          <th class="text-center text-primary table-header" colspan="9">
+          <th class="text-center text-primary table-header" colspan="11">
             <h4>খোরশেদ ক্যাবল টিভি।</h4>
             <small class='text-success'>ঠিকানা : তালপট্টি, সদর দক্ষিন, কুমিল্লা।</small>
             <small class="text-success">&nbsp;&nbsp;&nbsp;&nbsp;মোবাইল : ০১৮২২৮৬৯৫৯১</small>
@@ -14,8 +14,8 @@
         </tr>
         <tr>
           <th class="text-success text-center " colspan="2">বিল : {{ month_name}} </th>
-          <th class="text-success text-center" colspan="2"><strong>এলাকা : {{ area_name }}</strong></th>
-          <th class="text-success text-center" colspan="5">প্রিন্টের তারিখ : {% now "d b Y H:i" %}</th>
+          <th class="text-success text-center" colspan="4"><strong>এলাকা : {{ area_name }}</strong></th>
+          <th class="text-success text-center" colspan="5">প্রিন্টের তারিখ : {% now "d M Y H:i" %}</th>
         </tr>
         <tr>
           <th>আইডি</th>
@@ -26,7 +26,9 @@
           <th>মোবাইল</th>
           <th>পেশা</th>
           <th>বকেয়া</th>
-          <th>এই মাসে পরিশোধ</th>
+          <th>পরিশোধ</th>
+          <th class='px-3'>রসিদ</th>
+          <th class='px-3'>তারিখ</th>
         </tr>
       </thead>
       <tbody>
@@ -34,20 +36,31 @@
       {% for customer in customer_list %}
         <tr>
           <td>{{ customer.id }}</td>
-          <td>{{ customer.name }}</td>
-          <td>{{ customer.fatherName }}</td>
-          <td>{{ customer.address }}</td>
+          <td class='text-nowrap'>{{ customer.name }}</td>
+          <td style='font-size:14px;'>{{ customer.fatherName }}</td>
+          <td style='font-size:14px;'>{{ customer.address }}</td>
           <td>{{ customer.isActive|yesno:"সংযোকৃত,বিচ্ছিন্ন,maybe" }}</td>
           <td>{{ customer.mobileNumber }}</td>
           <td>{{ customer.occupation }}</td>
-          <td>{{ customer.get_total_dues }}</td>
-          <td>{{ customer.this_month_paid_amount }}</td>
+          <td>{{ customer.get_total_dues | stringformat:'d' }}</td>
+          <td>{{ customer.this_month_paid_amount | stringformat:'d' }}</td>
+          <td></td>
+          <td></td>
         </tr>
 
         {% endfor %}
+        <tr>
+          
+          <td class='text-right' colspan='7' >মোট</td>
+          
+          <td>{{ total_dues | stringformat:'d' }}</td>
+          <td>{{ total_paid | stringformat:'d' }}</td>
+          <td></td>
+          <td></td>
+        </tr>
       </tbody>
       <tfoot>
-        <td colspan='9' class='text-center'>
+        <td colspan='11' class='text-center'>
           <span class="text-primary">Development & Design : Mohammad Hasan </span>
         </td>
       </tfoot>

@@ -89,36 +89,38 @@
           <div id="billCheckbox"></div>
 
           <div class='input-group mt-2'>
-            <div class='input-group-append '>
-              <span class='input-group-text'>Amount</span>
+            <div class='input-group-append'>
+              <span class='input-group-text'>অ্যামাউন্ট</span>
             </div>
-            <div id="amountDiv"><input class="form-control " type="text" name="" id="amount"
-                placeholder="বিল অ্যামাউন্ট" tabindex="2" disabled></div>
+            <div id="amountDiv">
+              <input class="form-control " type="text" name="" id="amount" placeholder="duble click to enable" tabindex="2" disabled>
+            </div>
           </div>
 
           <div class='input-group mt-2'>
             <div class='input-group-append '>
-              <span class='input-group-text'>Discount</span>
+              <span class='input-group-text'>ডিসকাউন্ট</span>
             </div>
-            <div id="discountDiv"><input class="form-control" type="text" name="" id="discount" placeholder="ডিসকাউন্ট"
-                tabindex="3" disabled></div>
+            <div id="discountDiv">
+              <input class="form-control" type="text" name="" id="discount" placeholder="duble click to enable"tabindex="3" disabled>
+            </div>
           </div>
 
 
           <div class='input-group mt-2'>
             <div class='input-group-append '>
-              <span class='input-group-text'>Receipt</span>
+              <span class='input-group-text'>রসিদ</span>
             </div>
             <div>
-            <input class="form-control" type="text" name="" id="receipt" placeholder="রসিদ নাম্বার" tabindex="4">
+              <input class="form-control" type="text" name="" id="receipt" placeholder="রসিদ নাম্বার" tabindex="4">
             </div>
-            </div>
+          </div>
 
 
 
           <div class="custom-control custom-checkbox mt-2 ml-2">
             <input type="checkbox" class="custom-control-input" value="1" id="sms" tabindex="6" checked>
-            <label class="custom-control-label text-danger" for="sms">এসএমএস অ্যালার্ট</label>
+            <label class="custom-control-label text-danger" for="sms">এসএমএস অ্যালার্ট <span id='sms-balance' class='btn btn-info py-0 mx-3'></span></label> 
           </div>
 
           <button class="btn btn-success px-5 mt-2" id="paybtn" tabindex="5">পরিশোধ</button><span
