@@ -63,38 +63,36 @@ def index(request):
 
    
     
-    area_stats = Area.objects.values('name') \
+    area_wise_customer_stats = Area.objects.values('name') \
         .annotate(total=Count('customers')) \
         .annotate(active=Count('customers', filter=Q(customers__isActive=True))) \
         .annotate(inactive=Count('customers', filter=Q(customers__isActive=False))) \
  
 
-    qs2= Payment.objects.filter(customer__area=OuterRef('id')).order_by('-id').values('dues')[:1]
+    last_dues_query= Payment.objects.filter(customer__area=OuterRef('id')).order_by('-id').values('dues')[:1]
     area_wise_dues = Area.objects.values('name').annotate(
         unpaid_bill_dues= Sum('customers__bills__monthlyCharge', filter=Q(customers__bills__isPaid=False)),
-        last_payment_dues = Subquery(qs2)
+        last_payment_dues = Subquery(last_dues_query)
     )
 
-    new_area = list(area_stats)
+    area_wise_customer_stats_list = list(area_wise_customer_stats)
     grand_total = 0
-    for key, test in enumerate(area_wise_dues):
-        if test['last_payment_dues'] == None:
-            test['last_payment_dues'] = 0
-        if test['unpaid_bill_dues'] == None:
-            test['unpaid_bill_dues'] = 0
+    for area in area_wise_dues:
+        last_payment_dues = 0 if area['last_payment_dues'] == None else area['last_payment_dues'] 
+        unpaid_bill_dues = 0 if area['unpaid_bill_dues'] == None else area['unpaid_bill_dues'] 
+        total_dues = last_payment_dues + unpaid_bill_dues
+        grand_total += total_dues
 
-
-        test['total_dues'] = test['unpaid_bill_dues'] + test['last_payment_dues']
-        grand_total += test['total_dues']
-        new_area[key]['total_dues'] = test['total_dues']
-        
+        for key,value in enumerate(area_wise_customer_stats_list):
+            if value['name'] == area['name']:
+                area_wise_customer_stats_list[key]['total_dues'] = total_dues
 
 
     area_stats_total = {
-        'total': area_stats.aggregate(Sum('total'))['total__sum'],
+        'total': area_wise_customer_stats.aggregate(Sum('total'))['total__sum'],
         'grand_total': grand_total,
-        'active': area_stats.aggregate(Sum('active'))['active__sum'],
-        'inactive': area_stats.aggregate(Sum('inactive'))['inactive__sum'],
+        'active': area_wise_customer_stats.aggregate(Sum('active'))['active__sum'],
+        'inactive': area_wise_customer_stats.aggregate(Sum('inactive'))['inactive__sum'],
     }
 
 
@@ -105,7 +103,7 @@ def index(request):
         'collector_list':collector_list,
         'area_wise_collect':area_wise_collect,
         'area_wise_collect_total':area_wise_collect_total,
-        'area_stats':new_area,
+        'area_stats':area_wise_customer_stats_list,
         'area_stats_total':area_stats_total,  
     }
     return render(request, 'index.html', context)
