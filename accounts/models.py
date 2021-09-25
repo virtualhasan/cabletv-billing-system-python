@@ -4,8 +4,8 @@ from django.conf import settings
 
 # Create your models here.
 class User(AbstractUser):
-    is_collector = models.BooleanField(default=False)
-    is_admin = models.BooleanField(default=False)
+    is_collector = models.BooleanField('collector',default=False, help_text='if user is bill collector')
+    is_admin = models.BooleanField('admin',default=False, help_text='if user is admin action')
 
     class Meta:
         verbose_name_plural = 'User'

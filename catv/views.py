@@ -25,7 +25,10 @@ User = get_user_model()
 #this is for index page or Dashboard
 @login_required
 def index(request):
+    # area_import()
     # user_import()
+    
+
 
     last_ten_payments = Payment.objects.all().order_by("-createAt")[:10]
     today = timezone.now()
