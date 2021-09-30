@@ -9,7 +9,7 @@ from django.conf import settings
 from django.db.models.aggregates import Count
 from django.db.models.query_utils import Q
 from django.utils import timezone
-from catv.models import Area, Bill, Customer, Payment
+from catv.models import Area, Bill, Company, Customer, Payment
 from django.http.response import Http404, HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.db.models import Sum
@@ -27,9 +27,9 @@ User = get_user_model()
 def index(request):
     # area_import()
     # user_import()
+
     
-
-
+    
     last_ten_payments = Payment.objects.all().order_by("-createAt")[:10]
     today = timezone.now()
 
@@ -58,10 +58,6 @@ def index(request):
         .annotate(paidAmount=Sum('paidAmount')
     )
     area_wise_collect_total = area_wise_collect.aggregate(Sum('paidAmount')).get('paidAmount__sum')
-
-
-
-   
     
     area_wise_customer_stats = Area.objects.values('name') \
         .annotate(total=Count('customers')) \
@@ -96,9 +92,9 @@ def index(request):
     }
 
 
-
-
+    comapany_details = Company.objects.last()
     context = {
+        'company':comapany_details,
         'payment_list':last_ten_payments,
         'collector_list':collector_list,
         'area_wise_collect':area_wise_collect,
@@ -118,10 +114,12 @@ def customers(request):
     
     form = CustomerForm()
 
+    comapany_details = Company.objects.last()
     context = {
         "customers_list": customers,
         'area_list':area_list,
         'form':form,
+        'company':comapany_details,
     }
     return render(request, 'customers.html', context)
 
@@ -131,7 +129,8 @@ def customers(request):
 def add_customers(request):
     area = Area.objects.all()
     customers = Customer.objects.all().order_by('-createAt')[:10]
-    return render(request, 'add-customers.html', {'area_list':area, 'customers_list':customers})
+    comapany_details = Company.objects.last()
+    return render(request, 'add-customers.html', {'area_list':area, 'customers_list':customers,'compayny':comapany_details})
 
 
 @login_required
@@ -140,7 +139,8 @@ def customer_inactive(request, id):
     customer = get_object_or_404(Customer, id=id)
     is_active =json.loads(request.POST.get('isActive'))
     is_bill_delete_or_generate = json.loads(request.POST.get('isBillDeleteOrGenerate'))
-    today = timezone.now()
+    today = timezone.now().replace(day=1) - timedelta(days=1)
+    old_value = customer.isActive
 
     if request.method == "POST":
         try:
@@ -148,6 +148,7 @@ def customer_inactive(request, id):
                 customer.isActive = not is_active #if active customer then it will be inactive
                 customer.updateBy = request.user
                 customer.save()
+                print(customer.isActive)
 
                 if is_active: #if user want to customer inactive and last bill delete
                     if is_bill_delete_or_generate:
@@ -164,15 +165,15 @@ def customer_inactive(request, id):
                             year=today.year,
                             customer=customer,
                             monthlyCharge= customer.monthlyCharge,
-                            createBy=request.user
+                            createBy= request.user
                         )
 
                 AuditTable.objects.create(
                         table='Customer', 
                         field='isActive',
-                        record_id=id, 
-                        old_value=customer.isActive, 
-                        new_value=not is_active,
+                        record_id= id, 
+                        old_value= old_value, 
+                        new_value= customer.isActive,
                         add_by= request.user
                         )
 
@@ -208,7 +209,8 @@ def get_next_id(request, area_id):
 
 @login_required
 def bills(request):
-    return render(request, 'bills.html', {})
+    comapany_details = Company.objects.last()
+    return render(request, 'bills.html', {'company':comapany_details})
 
 
 
@@ -216,10 +218,12 @@ def bills(request):
 def reports(request):
     area_list = Area.objects.all()
     user_list = User.objects.all()
+    comapany_details = Company.objects.last()
 
     context = {
         'area_list':area_list,
         'user_list':user_list,
+        'company':comapany_details,
     }
     return render(request, 'reports.html', context)
 
@@ -234,9 +238,11 @@ def single_report(request):
     except Customer.DoesNotExist:
         raise Http404
 
+    comapany_details = Company.objects.last()
     context = {
         'customer':customer,
         'payment_list': payments,
+        'company': comapany_details,
     }
     return render(request, 'singlereport.html', context=context) 
 
@@ -256,13 +262,15 @@ def monthly_report(request):
         payments = Payment.objects.filter(createAt__month=month, createAt__year=year)
         month_str = datetime.strptime(month,"%m").strftime("%B")
         month_name =f"{month_str}-{year}" 
-
-
     total = payments.aggregate(Sum('paidAmount')).get('paidAmount__sum')
+
+
+    company_details = Company.objects.last()
     context = {
         'payment_list':payments,
         'total': total,
         'month_name': month_name,
+        
     }
     return render(request, 'monthly-report.html', context)
 
@@ -290,12 +298,14 @@ def area_report(request):
     pre_month = first - timedelta(days=1)
     month_name = pre_month.strftime("%B-%Y")
 
+    company_details= Company.objects.last()
     context = {
         'area_name':area_name,
         'month_name':month_name,
         'customer_list':customers,
         'total_dues':total_dues,
         'total_paid':total_paid,
+        'company': company_details,
     }
     return render(request, 'area-report.html', context)
 
@@ -350,8 +360,10 @@ def settings_view(request):
         else:
             return HttpResponse("please provide area name")
 
+    comapany_details = Company.objects.last()
     context= {
-        "area_list":area_list
+        "area_list":area_list,
+        "company":comapany_details,
     }
     return render(request, 'settings.html', context)
 

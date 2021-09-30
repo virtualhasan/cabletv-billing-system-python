@@ -329,20 +329,25 @@ $(document).ready(function () {
                 success: function (data) {
                     inactiveModal.modal('hide')
                     console.log(data)
-                    if (isActive) {
-                        inactiveBtn
-                            .addClass('btn-danger')
-                            .removeClass('btn-success')
-                            .html('<i class="fa fa-check"></i>')
-                            .data('isactive', 'inactive')
-                    } else {
-                        inactiveBtn
-                            .addClass('btn-success')
-                            .removeClass('btn-danger')
-                            .html('<i class="fa fa-times"></i>')
-                            .data('isactive', 'active')
+                    if (data.success) {
+                        if (isActive) {
+                            inactiveBtn
+                                .addClass('btn-success')
+                                .removeClass('btn-danger')
+                                .html('<i class="fa fa-check"></i>')
+                                .data('isactive', 'inactive')
+                        } else {
+                            inactiveBtn
+                                .addClass('btn-danger')
+                                .removeClass('btn-success')
+                                .html('<i class="fa fa-times"></i>')
+                                .data('isactive', 'active')
 
+                        }
+                    } else {
+                        console.log(data)
                     }
+
                 }
             })
         })

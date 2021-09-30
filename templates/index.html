@@ -1,19 +1,13 @@
 {% extends 'base.html' %}
 {% load humanize %}
 {% block header %}
-{% include 'header.html' %}
+{% include 'header.html' with company=company %}
 {% endblock %}
 {% block main %}
 
 <div class="container m-4 mx-auto">
     <section class="bg-light border shadow rounded p-3">
         <h3 class="mt-3 pb-3 text-center border-bottom">স্বাগতম! ক্যাবল টিভি সার্ভিস.</h3>
-
-        {% comment %} <div class='container bg-danger text-center rounded'>
-            <h2><a class='btn text-light display-4' href='http://isp.xn--85b5acub.xn--54b7fta0cc/'>Internet Bill</a>
-            </h2>
-        </div> {% endcomment %}
-
 
         <ul class="nav nav-tabs">
             <li class="nav-item">

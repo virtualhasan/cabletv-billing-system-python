@@ -2,7 +2,7 @@ import json
 from django.conf import settings
 import requests
 from catv.views import customers
-from catv.models import Area, Bill, Customer, Payment
+from catv.models import Area, Bill, Company, Customer, Payment
 from django.http.response import Http404
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -221,13 +221,10 @@ class CustomerWisePayment(APIView):
                     bill_object.isPaid = True
                     bill_object.payment = payment
                     bill_object.save()
-                
-                bangla_message= f'প্রিয় {customer.name}, আপনি ক্যাবল টিভি বিল {paid_amount:.0f} টাকা {txnid} রসিদে পরিশোধ করা হয়েছে। বকেয়া {customer.get_total_dues()} টাকা'
-                print(bangla_message)
-
+                company = Company.objects.last()
                 if is_sms:
                     message = f'Dear User, {customer.id}. Your cable tv bill successfully paid. Amount {paid_amount} discount {discount} receipt {txnid}'
-                    bangla_message= f'প্রিয় {customer.name}({customer.id}), খোরশেদ ক্যাবল টিভি বিল {paid_amount:.0f} টাকা {txnid} রসিদে পরিশোধ করা হয়েছে। বকেয়া {customer.get_total_dues():.0f} টাকা, Contact:01822869591'
+                    bangla_message= f'প্রিয় {customer.name}({customer.id}), {company.banglaName} বিল {paid_amount:.0f} টাকা {txnid} রসিদে পরিশোধ করা হয়েছে। বকেয়া {customer.get_total_dues():.0f} টাকা, Contact:{company.mobileNumber}'
                     try:
                         if customer.mobileNumber != '0' or customer.mobileNumber != '':
                             response = requests.post(
