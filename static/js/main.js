@@ -336,12 +336,16 @@ $(document).ready(function () {
                                 .removeClass('btn-danger')
                                 .html('<i class="fa fa-check"></i>')
                                 .data('isactive', 'inactive')
+
+                            inactiveBtn.parent().prev().html('বিচ্ছিন্ন')
                         } else {
                             inactiveBtn
                                 .addClass('btn-danger')
                                 .removeClass('btn-success')
                                 .html('<i class="fa fa-times"></i>')
                                 .data('isactive', 'active')
+
+                            inactiveBtn.parent().prev().html('সংযোগকৃত')
 
                         }
                     } else {

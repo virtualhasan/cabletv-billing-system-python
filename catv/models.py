@@ -57,9 +57,10 @@ class Customer(models.Model):
         dues = self.bills.filter(isPaid=False).aggregate(total =Sum('monthlyCharge'))['total']
         dues = dues if dues else 0 
         last_payment = self.payments.last()
-        dues += last_payment.dues if last_payment else dues
+        dues += last_payment.dues if last_payment else 0
         return dues
         
+
     def this_month_paid_amount(self):
         today = timezone.now()
         payment = self.payments.filter(

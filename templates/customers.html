@@ -50,7 +50,7 @@
             </div>
             <div class="col-sm form-group">
               <label for="address">ঠিকানা</label>
-              <input type="text" id="address" class="form-control" name="address" required>
+              <input type="text" id="address" class="form-control" name="address">
 
             </div>
           </div>
@@ -142,6 +142,7 @@
       <th>এলাকা</th>
       <th>মোবাইল</th>
       <th class='text-nowrap'>মাসিক বিল</th>
+      <th>অবস্থা</th>
       <th></th>
     </thead>
     <tbody>
@@ -154,6 +155,7 @@
         <td>{{ customer.area.name }}</td>
         <td>{{ customer.mobileNumber }}</td>
         <td>{{ customer.monthlyCharge }}</td>
+        <td>{{ customer.isActive|yesno:'সংযোগকৃত, বিচ্ছিন্ন,' }}</td>
         <td class='d-flex flex-nowrap'>
           {% if user.is_collector %}
           <a href='/single_report/?id={{ customer.id }}' class='btn btn-sm  btn-info mx-1'> <i class="fa fa-info"></i>
